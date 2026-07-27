@@ -1,0 +1,364 @@
+ --connect ec2 server with terminal----
+
+   - create ec2 server like ubntu, amazon-lunux , redhat and many more and also create ACCESS-KEY-pair inside the ec2 Like filename.pem
+
+--------CONNECT EC2 WITH .PEM KEY---------
+
+  - filename.pem jis location pr h wahi se cmd ko open kro or fir ye command use kro 
+   => ssh -i demo.pem ubuntu@public-ip
+
+1. sudo apt update -y
+
+2. sudo apt install docker.io -y
+
+3. docker --version
+
+4. sudo systemctl start docker
+
+5. sudo systemctl enable docker
+
+6. sudo systemctl status docker
+
+---exit status press --q   
+
+7. pull image 
+
+sudo docker pull nginx
+
+8.  docker images
+  
+    if facing error like permision denide
+
+    - sudo docker images
+    - sudo usermod -aG docker $USER
+    - newgrp docker
+    - then now - docker images 
+
+9- mkdir mysite  - update custime page or replace from the nginx server
+cd mysite
+
+10- create custome index.html page 
+- nano index.html
+
+------code-------
+
+     <!DOCTYPE html>
+<html>
+<head>
+    <title>Soften DevOps</title>
+</head>
+<body>
+    <h1>Welcome Soften DevOps</h1>
+    <h2>Docker on AWS EC2</h2>
+</body>
+</html>
+--------------------
+CTRL + O	save
+ENTER	confirm
+CTRL + X	exit
+-------------------
+
+11- File Check
+  - ls
+
+12- File Content Check
+  - cat index.html
+
+13 - Existing Container Remove
+    - docker rm -f y1
+14- Ab Custom NGINX Run Karo
+ 
+  docker run -d -p 9900:80 \
+-v $(pwd)/index.html:/usr/share/nginx/html/index.html \
+--name y1 nginx
+
+15- Container Check--------
+ - docker ps
+
+ 16. - open on the browser-- http://34.241.242.156:900
+
+ 17. ------create volume on ec2--------
+   - docker run -d \
+    -p 9900:80 \
+    -v myvolume:/usr/share/nginx/html \
+    --name vol-nginx \
+    nginx
+ 
+    --- ls volume-name
+
+18.  Seen the volume data inside the linux sever directory-------------
+  
+  -  sudo ls /var/lib/docker/volumes/myvolume/_data
+
+  -  -if delete the docker all volume
+     - docker volume rm $(docker volume ls -q)
+    
+19. one container connect to multiple borts--------------- 
+   
+   -Port 80  ─┐
+          ├──> Same Container Port 80
+   -Port 900 ─┘
+
+   - docker run -d \
+    -p 9559:80 \
+    -p 2026:80 \
+    --name terra \
+    nginx
+
+    --disply on the browser access
+       - http://34.241.242.156
+       - http://34.241.242.156:900
+
+
+20 . All Running Containers Stop---------
+   
+    - docker stop $(docker ps -aq)
+
+21 . All Containers Delete----------------    
+
+    - docker rm $(docker ps -aq)
+
+22 . Stop + Remove Together----------
+   
+    - docker rm -f $(docker ps -aq)    
+
+23. docker-Network----------------------- 
+    
+    1. - docker network create mynetwork
+    2. - docker network ls
+
+    3. docker run -d \
+    --name c1 \
+    --network mynetwork \
+    nginx
+   
+   4. docker run -dit \
+    --name c2 \
+    --network mynetwork \
+    ubuntu
+
+24. Network Inspect------------------------
+ 
+  - docker network inspect mynetwork
+
+25. Container-to-Container Communication---------
+
+     Container c1 ───── Docker Network ───── Container c2
+
+   - docker exec -it c2 bash
+   - ls
+   - ping c1 
+   - if you faceing-error like -bash: ping: command not found
+   then 
+    - apt update
+    - apt install iputils-ping -y
+    - ping c1
+
+26. Custom Network Delete-----------------------
+
+   - docker network rm mynetwork
+
+    2. Multiple Custom Networks Delete
+
+       - docker network rm net1 net2 net3
+    
+    3. All Unused Custom Networks Delete
+      - docker network prune -f
+
+
+27. DOCKER-COMPOSER-YML--------------------------
+
+    1. sudo apt install docker-compose-plugin -y
+         if err- Error: Unable to locate package docker-compose-plugin
+          then - 1. sudo apt update
+                
+                2 - => Install Dependencies
+
+                   -sudo apt install curl -y 
+
+                3. => Docker Compose Download
+            
+                 - sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64" \
+-o /usr/local/bin/docker-compose
+
+                4. Execute Permission
+                  - sudo chmod +x /usr/local/bin/docker-compose  
+
+
+                5. docker compose version
+                    - docker-compose --version
+
+                6. mkdir compose-project
+                   - cd compose-project
+
+                7. Create YAML File
+                   - nano docker-compose.yml
+
+                   version: '3'
+
+                    services:
+
+                      web:
+                        image: nginx
+                        container_name: nginx-server
+
+                        ports:
+                          - "80:80"
+
+                      app:
+                        image: caddy
+                        container_name: caddy-server
+
+                        ports:
+                          - "2026:80"
+        ------------------------------------------
+                          Key   Action
+                            CTRL + O    save
+                            ENTER   confirm
+                            CTRL + X    exit
+
+                8. Verify File
+                  - cat docker-compose.yml
+
+                9. Run gain 
+
+                   - docker-compose up -d
+
+28. CREATE DOCKER FILE AND PUSH ON DOCKER-HUB---------------------------------
+
+  - scp -i dkr.pem -r . ubuntu@34.241.85.227:/home/ubuntu/docker-ec2
+
+
+   MY Current location- C:\Users\pc\Downloads\vegpro>scp -i ec22.pem -r . ubuntu@3.254.189.170:/home/ubuntu/vegpro
+
+30 . Dockerfile Create--------------------------------------
+      -nano Dockerfile
+           code-
+               FROM nginx:latest
+
+                COPY . /usr/share/nginx/html
+
+                EXPOSE 80
+
+             - | Key      | Action  |
+        | -------- | ------- |
+        | CTRL + O | save    |
+        | ENTER    | confirm |
+        | CTRL + X | exit    |
+
+31 . Build Docker Image---------------------------------------
+
+     - docker build -t shivsoftapp/vegpro-image:51 .
+
+      - docker images
+
+      - docker login 
+          -Your one-time device confirmation code is: JNFJ-JZFC
+            Press ENTER to open your browser or submit your device code here: https://login.docker.com/activate
+
+      - docker push docker-hub/image-name 
+
+32.  JENKISN CI-CD PIPELINE COMMANDS on ec2-------------------------------
+     
+      --sudo apt update
+
+     1. Install Java----------
+        - sudo apt install openjdk-21-jdk -y
+
+     2. Jenkins Package Download---------
+        - wget https://get.jenkins.io/debian-stable/jenkins_2.516.1_all.deb
+
+     3. Install Jenkins------------
+
+        - sudo dpkg -i jenkins_2.516.1_all.deb
+
+     4. Fix Dependencies----------
+
+        - sudo apt --fix-broken install -y
+
+     5. Start Jenkins---------
+        
+         sudo systemctl enable jenkins
+          sudo systemctl start jenkins
+
+     6. Check Status-------
+
+         sudo systemctl status jenkins
+
+
+      7. Open Port 8080------
+          Type  Port    Source
+            Custom TCP  8080    0.0.0.0/0  
+
+      8. Jenkins Unlock Password--EC2 terminal me:-----
+
+
+         sudo cat /var/lib/jenkins/secrets/initialAdminPassword
+
+           - Copy Password
+
+                Aur browser me paste karo.
+
+            ---Check Jenkins Port
+
+                    Terminal me:
+
+                    sudo netstat -tulnp | grep 8080 
+
+                      --sudo ufw disable
+            -- Restart Jenkins
+                  sudo systemctl restart jenkins         
+
+      9.  Install Suggested Plugins------------
+
+         Install suggested plugins
+
+
+34. ----------------------jenkins creandential------------------
+
+1. ----GitLab---
+Field   Value
+Username    GitLab Username
+Password    GitLab Personal Access Token
+ID - gitlab-creds
+
+2..------docker-hub-----
+  Field Value
+Username    DockerHub Username
+Password    DockerHub Password/Token
+ID  dockerhub-creds
+
+35.----------: Blue Ocean URL Open ----------
+
+http://your-public-ip:8080/blue
+
+36. -----------Plugin Installed Hai Ya Nahi---------
+     EC2 terminal me:
+
+       sudo ls /var/lib/jenkins/plugins | grep blue
+
+         Then restart:
+           - sudo systemctl restart jenkins
+
+37 --------------Docker Permission Fix--------------
+
+    sudo usermod -aG docker jenkins
+    sudo systemctl restart jenkins
+    sudo systemctl restart docker
+
+38. ------------------Docker Access Verify----------
+    sudo su - jenkins
+    docker ps
+
+39.----  look on Grid view stage pipleine-----------
+
+  http://your-public-ip:8080/job/docker-ec2-web-pipeline/
+
+
+
+
+
+
+
+
+
